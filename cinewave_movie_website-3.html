@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SB Movie — Movie Streaming</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#090909;color:#fff}
+header{position:sticky;top:0;z-index:10;background:rgba(9,9,9,.95);border-bottom:1px solid #222;padding:16px 5%;display:flex;align-items:center;gap:25px}
+.logo{font-size:25px;font-weight:800;color:#e50914}.logo span{color:#fff}
+nav{display:flex;gap:18px;margin-left:auto}nav a{color:#bbb;text-decoration:none}nav a:hover{color:#fff}
+.search{width:240px;background:#171717;border:1px solid #333;border-radius:22px;padding:10px 16px;color:#fff;outline:none}
+.hero{min-height:430px;padding:75px 7%;display:flex;align-items:center;background:linear-gradient(90deg,#090909 15%,rgba(9,9,9,.75),rgba(9,9,9,.15)),linear-gradient(135deg,#202020,#090909)}
+.hero-content{max-width:620px}.tag{color:#e50914;font-weight:bold;margin-bottom:12px}.hero h1{font-size:clamp(40px,6vw,70px);margin-bottom:15px}.hero p{color:#ccc;line-height:1.7;margin-bottom:24px}
+.btn{display:inline-block;border:0;border-radius:6px;padding:12px 22px;background:#e50914;color:white;font-weight:bold;cursor:pointer}.btn.secondary{background:#333;margin-left:8px}
+.container{padding:35px 5%}.section-title{font-size:25px;margin-bottom:18px}.filters{display:flex;gap:10px;overflow:auto;margin-bottom:25px}.filter{background:#191919;color:#ddd;border:1px solid #333;border-radius:20px;padding:8px 16px;cursor:pointer;white-space:nowrap}.filter.active,.filter:hover{background:#e50914;border-color:#e50914}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:22px}.card{background:#151515;border-radius:10px;overflow:hidden;cursor:pointer;transition:.2s}.card:hover{transform:translateY(-5px);box-shadow:0 10px 30px #000}.poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:#222}.info{padding:12px}.info h3{font-size:16px;margin-bottom:7px}.meta{font-size:13px;color:#999}
+.player-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:30;padding:5vh 5%;overflow:auto}.player{max-width:950px;margin:auto}.close{float:right;font-size:30px;color:#fff;background:none;border:0;cursor:pointer;margin-bottom:10px}.video{width:100%;background:#000;max-height:75vh}.player h2{margin:15px 0 5px}.player p{color:#aaa}
+.empty{text-align:center;color:#888;padding:40px}
+footer{text-align:center;padding:40px;color:#777;border-top:1px solid #222;margin-top:30px}
+.account-btn{background:#e50914;color:#fff;border:0;border-radius:6px;padding:10px 15px;font-weight:bold;cursor:pointer}
+.auth-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:40;align-items:center;justify-content:center;padding:20px}
+.auth-box{width:min(420px,100%);background:#151515;border:1px solid #292929;border-radius:14px;padding:28px;box-shadow:0 20px 60px #000}
+.auth-box h2{margin-bottom:8px}.auth-box p{color:#999;margin-bottom:20px}
+.auth-box input{width:100%;padding:13px;margin:7px 0;background:#0d0d0d;border:1px solid #333;border-radius:7px;color:#fff;outline:none}
+.auth-submit{width:100%;margin-top:10px}
+.auth-close{float:right;background:none;border:0;color:#aaa;font-size:28px;cursor:pointer}
+.auth-switch{text-align:center;margin-top:18px!important}.auth-switch button{background:none;border:0;color:#e50914;cursor:pointer;font-weight:bold}
+.auth-message{min-height:20px;color:#e50914;font-size:14px;margin-top:10px!important}
+.profile-box{display:none;text-align:center}.profile-box .avatar{width:70px;height:70px;border-radius:50%;background:#e50914;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold;margin:0 auto 15px}
+@media(max-width:700px){.account-btn{margin-left:auto}nav{width:100%;order:4}.search{order:5}}
+@media(max-width:700px){header{flex-wrap:wrap}.search{order:3;width:100%}nav{margin-left:0}.hero{min-height:390px;padding:50px 6%}.grid{grid-template-columns:repeat(2,1fr);gap:13px}.container{padding:28px 4%}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SB<span> Movie</span></div>
+  <nav><a href="#home">Home</a><a href="#movies">Movies</a><a href="#about">About</a></nav>
+  <button id="accountBtn" class="account-btn" onclick="openAuth()">Login / Sign Up</button>
+  <input id="search" class="search" type="search" placeholder="Search movies...">
+</header>
+
+<section id="home" class="hero">
+  <div class="hero-content">
+    <div class="tag">WELCOME TO CINEWAVE</div>
+    <h1>Watch Great Movies.</h1>
+    <p>A clean, responsive movie-streaming interface. Add your own licensed or public-domain video content and customize the catalog.</p>
+    <button class="btn" onclick="document.querySelector('#movies').scrollIntoView({behavior:'smooth'})">Browse Movies</button>
+    <button class="btn secondary" onclick="showMovie(0)">Play Featured</button>
+  </div>
+</section>
+
+<main id="movies" class="container">
+  <h2 class="section-title">Movies</h2>
+  <div id="filters" class="filters"></div>
+  <div id="grid" class="grid"></div>
+</main>
+
+<section id="about" class="container">
+  <h2 class="section-title">About</h2>
+  <p style="color:#aaa;line-height:1.7;max-width:800px">SB Movie is a front-end starter template. Replace the sample posters and video URLs with content you own, have permission to stream, or that is in the public domain.</p>
+</section>
+
+<footer>© 2026 SB Movie — Streaming UI Demo</footer>
+
+<div id="authWrap" class="auth-wrap">
+  <div class="auth-box">
+    <button class="auth-close" onclick="closeAuth()">×</button>
+    <div id="authForm">
+      <h2 id="authTitle">Login to SB Movie</h2>
+      <p id="authSubtitle">Sign in to continue watching.</p>
+      <form onsubmit="handleAuth(event)">
+        <input id="nameInput" type="text" placeholder="Full name" style="display:none">
+        <input id="emailInput" type="email" placeholder="Email address" required>
+        <input id="passwordInput" type="password" placeholder="Password" required minlength="6">
+        <button class="btn auth-submit" id="authSubmit" type="submit">Login</button>
+      </form>
+      <p class="auth-message" id="authMessage"></p>
+      <p class="auth-switch" id="authSwitch">Don't have an account? <button onclick="toggleAuth()">Sign Up</button></p>
+    </div>
+    <div id="profileBox" class="profile-box">
+      <div class="avatar" id="avatar">S</div>
+      <h2 id="profileName">SB Movie User</h2>
+      <p id="profileEmail"></p>
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</div>
+
+<div id="playerWrap" class="player-wrap">
+  <div class="player">
+    <button class="close" onclick="closePlayer()">×</button>
+    <video id="video" class="video" controls playsinline></video>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <a id="downloadBtn" class="btn" href="#" download>⬇ Download</a>
+      <button class="btn secondary" onclick="closePlayer()">Close</button>
+    </div>
+    <h2 id="playerTitle"></h2>
+    <p id="playerMeta"></p>
+  </div>
+</div>
+
+<script>
+const movies=[
+ {title:"Big Buck Bunny",year:2008,genre:"Animation",poster:"https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4",video:"https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4",description:"Sample public-domain-style demo video. Replace with your own licensed content."},
+ {title:"Sintel",year:2010,genre:"Fantasy",poster:"https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217",video:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",description:"Demo entry for testing the player."},
+ {title:"For Bigger Escape",year:2013,genre:"Adventure",poster:"https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg",video:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",description:"Sample streaming video."},
+ {title:"For Bigger Fun",year:2013,genre:"Comedy",poster:"https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg",video:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",description:"Sample streaming video."},
+ {title:"For Bigger Joyrides",year:2013,genre:"Action",poster:"https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg",video:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",description:"Sample streaming video."},
+ {title:"For Bigger Meltdowns",year:2013,genre:"Drama",poster:"https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg",video:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",description:"Sample streaming video."}
+];
+
+let currentGenre="All";
+
+const grid=document.getElementById("grid");
+const filters=document.getElementById("filters");
+const search=document.getElementById("search");
+
+function genres(){
+ const gs=["All",...new Set(movies.map(m=>m.genre))];
+ filters.innerHTML=gs.map(g=>`<button class="filter ${g===currentGenre?'active':''}" onclick="setGenre('${g}')">${g}</button>`).join("");
+}
+function render(){
+ const q=search.value.toLowerCase().trim();
+ const list=movies.filter(m=>(currentGenre==="All"||m.genre===currentGenre)&&m.title.toLowerCase().includes(q));
+ grid.innerHTML=list.length?list.map(m=>{
+   const i=movies.indexOf(m);
+   return `<article class="card" onclick="showMovie(${i})">
+     <img class="poster" src="${m.poster}" alt="${m.title}" onerror="this.style.display='none'">
+     <div class="info"><h3>${m.title}</h3><div class="meta">${m.year} • ${m.genre}</div></div>
+   </article>`;
+ }).join(""):`<div class="empty">No movies found.</div>`;
+}
+function setGenre(g){currentGenre=g;genres();render()}
+function showMovie(i){
+ const m=movies[i];
+ document.getElementById("playerTitle").textContent=m.title;
+ document.getElementById("playerMeta").textContent=`${m.year} • ${m.genre} — ${m.description}`;
+ const v=document.getElementById("video");v.src=m.video;
+ const d=document.getElementById("downloadBtn");d.href=m.video;d.setAttribute("download",m.title.replace(/[^a-z0-9]+/gi,"-").toLowerCase()+".mp4");
+ document.getElementById("playerWrap").style.display="block";
+ document.body.style.overflow="hidden";
+ v.play().catch(()=>{});
+}
+function closePlayer(){
+ const v=document.getElementById("video");v.pause();v.removeAttribute("src");v.load();
+ document.getElementById("playerWrap").style.display="none";
+ document.body.style.overflow="";
+}
+let authMode="login";
+
+function openAuth(){
+  const user=JSON.parse(localStorage.getItem("sbMovieUser")||"null");
+  document.getElementById("authWrap").style.display="flex";
+  if(user) showProfile(user); else showLogin();
+}
+function closeAuth(){document.getElementById("authWrap").style.display="none"}
+function showLogin(){
+  authMode="login";
+  document.getElementById("authForm").style.display="block";
+  document.getElementById("profileBox").style.display="none";
+  document.getElementById("authTitle").textContent="Login to SB Movie";
+  document.getElementById("authSubtitle").textContent="Sign in to continue watching.";
+  document.getElementById("nameInput").style.display="none";
+  document.getElementById("authSubmit").textContent="Login";
+  document.getElementById("authSwitch").innerHTML="Don't have an account? <button onclick=\"toggleAuth()\">Sign Up</button>";
+  document.getElementById("authMessage").textContent="";
+}
+function toggleAuth(){
+  authMode=authMode==="login"?"signup":"login";
+  document.getElementById("authForm").style.display="block";
+  document.getElementById("profileBox").style.display="none";
+  document.getElementById("authTitle").textContent=authMode==="signup"?"Create SB Movie Account":"Login to SB Movie";
+  document.getElementById("authSubtitle").textContent=authMode==="signup"?"Create your account to save your session.":"Sign in to continue watching.";
+  document.getElementById("nameInput").style.display=authMode==="signup"?"block":"none";
+  document.getElementById("nameInput").required=authMode==="signup";
+  document.getElementById("authSubmit").textContent=authMode==="signup"?"Create Account":"Login";
+  document.getElementById("authSwitch").innerHTML=authMode==="signup"?'Already have an account? <button onclick="toggleAuth()">Login</button>':'Don\'t have an account? <button onclick="toggleAuth()">Sign Up</button>';
+  document.getElementById("authMessage").textContent="";
+}
+function handleAuth(e){
+  e.preventDefault();
+  const email=document.getElementById("emailInput").value.trim();
+  const password=document.getElementById("passwordInput").value;
+  const name=document.getElementById("nameInput").value.trim();
+  if(authMode==="signup"){
+    const user={name:name,email:email,password:password};
+    localStorage.setItem("sbMovieUser",JSON.stringify(user));
+    showProfile(user);
+  }else{
+    const user=JSON.parse(localStorage.getItem("sbMovieUser")||"null");
+    if(!user || user.email!==email || user.password!==password){
+      document.getElementById("authMessage").textContent="Email or password is incorrect.";
+      return;
+    }
+    showProfile(user);
+  }
+}
+function showProfile(user){
+  document.getElementById("authForm").style.display="none";
+  document.getElementById("profileBox").style.display="block";
+  document.getElementById("profileName").textContent=user.name||"SB Movie User";
+  document.getElementById("profileEmail").textContent=user.email;
+  document.getElementById("avatar").textContent=(user.name||"S").charAt(0).toUpperCase();
+  document.getElementById("accountBtn").textContent="My Account";
+}
+function logout(){
+  localStorage.removeItem("sbMovieUser");
+  document.getElementById("accountBtn").textContent="Login / Sign Up";
+  closeAuth();
+}
+window.addEventListener("DOMContentLoaded",()=>{
+  const user=JSON.parse(localStorage.getItem("sbMovieUser")||"null");
+  if(user) document.getElementById("accountBtn").textContent="My Account";
+});
+search.addEventListener("input",render);
+genres();render();
+</script>
+</body>
+</html>
